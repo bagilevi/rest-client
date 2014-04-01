@@ -467,6 +467,18 @@ describe RestClient::Request do
 
       @request.transmit(@uri, @req, nil)
     end
+
+    it "set idle_timeout" do
+      @request = RestClient::Request.new(:method => :put, :url => 'http://some/resource', :payload => 'payload', :idle_timeout => 123, :ssl_version => 'SSLv3')
+      @net.stub!(:request)
+      @request.stub!(:process_result)
+      @request.stub!(:response_log)
+
+      @net.should_receive(:idle_timeout=).with(123)
+      @net.should_receive(:ssl_version=).with('SSLv3')
+
+      @request.transmit(@uri, @req, nil)
+    end
   end
 
   describe "ssl" do

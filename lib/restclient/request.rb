@@ -30,7 +30,7 @@ module RestClient
                 :payload, :user, :password, :timeout, :max_redirects,
                 :open_timeout, :raw_response, :verify_ssl, :ssl_client_cert,
                 :ssl_client_key, :ssl_ca_file, :processed_headers, :args,
-                :ssl_version, :cert_store, :persistent
+                :ssl_version, :cert_store, :persistent, :idle_timeout
 
     def self.execute(args, & block)
       new(args).execute(& block)
@@ -59,6 +59,7 @@ module RestClient
       @ssl_version = args[:ssl_version] || 'SSLv3'
       @cert_store = args[:cert_store]
       @persistent = args.has_key?(:persistent) ? args[:persistent] : RestClient.persistent
+      @idle_timeout = args[:idle_timeout]
       @tf = nil # If you are a raw request, this is your tempfile
       @max_redirects = args[:max_redirects] || 10
       @processed_headers = make_headers headers
@@ -164,10 +165,12 @@ module RestClient
       net.ca_file = @ssl_ca_file if @ssl_ca_file
       net.read_timeout = @timeout if @timeout
       net.open_timeout = @open_timeout if @open_timeout
+      net.idle_timeout = @idle_timeout if @idle_timeout
 
       # disable the timeout if the timeout value is -1
       net.read_timeout = nil if @timeout == -1
       net.open_timeout = nil if @open_timeout == -1
+      net.idle_timeout = nil if @idle_timeout == -1
 
       RestClient.before_execution_procs.each do |before_proc|
         before_proc.call(req, args)
